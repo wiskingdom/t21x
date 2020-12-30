@@ -43,7 +43,7 @@ npm -v
 ```
 --------------------------
 
-## 2. Install t21x package for XLI tools
+## 2. Install t21x package for CLI tools
 
 ```bash
 npm install t21x -g
