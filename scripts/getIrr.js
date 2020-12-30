@@ -4,7 +4,7 @@ const fs = require('fs');
 // third-party modules
 const xlsx = require('xlsx');
 // custom modules
-const { pipe, logTap } = require('../ytools').functools;
+const { pipe, logTap } = require('../lib/ytools').functools;
 
 /* define options */
 const inputPath = './data/han2014.xlsx';
@@ -20,7 +20,9 @@ const pipeLine = [
 ];
 
 console.log('reading...');
-const sheet = xlsx.readFile(inputPath).Sheets['Sheet1'];
+const wb = xlsx.readFile(inputPath);
+const sheet = wb.Sheets[wb.SheetNames[0]];
+
 const records = xlsx.utils.sheet_to_json(sheet);
 
 const irrTypes = pipe(pipeLine)(records);
