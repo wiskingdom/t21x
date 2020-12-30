@@ -1,0 +1,29 @@
+{
+  "name": "t21x",
+  "version": "0.0.1",
+  "description": "Tools for t21 xlsx files.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "irr": "node ./scripts/getIrr.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wiskingdom/t21x.git"
+  },
+  "author": "Yeonwoo Kim",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wiskingdom/t21x/issues"
+  },
+  "homepage": "https://github.com/wiskingdom/t21x#readme",
+  "dependencies": {
+    "xlsx": "^0.16.9"
+  },
+  "devDependencies": {
+    "eslint": "^7.16.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-prettier": "^3.3.0",
+    "prettier": "2.2.1"
+  }
+}
