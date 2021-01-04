@@ -1,6 +1,6 @@
 {
   "name": "t21x",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Tools for t21 xlsx files.",
   "main": "main.js",
   "scripts": {

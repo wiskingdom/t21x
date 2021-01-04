@@ -11,9 +11,11 @@ module.exports = { main };
 
 /* main */
 function main(inputDataPath, inputAssignPath) {
-  const { name: fileName, base: fileBaseName, ext } = path.parse(inputDataPath);
+  const { dir, name: fileName, base: fileBaseName, ext } = path.parse(
+    inputDataPath
+  );
   const timestamp = new Date().getTime().toString();
-  const outDirPath = path.join('.', 'output', `${fileName}-${timestamp}`);
+  const outDirPath = path.join(dir, `${fileName}-${timestamp}`);
 
   const { data: assignTable } = readSheet(0, inputAssignPath);
 

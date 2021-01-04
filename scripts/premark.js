@@ -1,7 +1,6 @@
 /* import modules */
 // built-in modules
 const path = require('path');
-const fs = require('fs');
 // custom modules
 const { readSheet, writeSheet } = require('../lib/sheetIO');
 const { naList } = require('../resource/naList');
@@ -11,9 +10,9 @@ module.exports = { main };
 
 /* main */
 function main(inputDataPath) {
-  const { name: fileName, ext } = path.parse(inputDataPath);
+  const { dir, name: fileName, ext } = path.parse(inputDataPath);
   const newsType = fileName.replace(/(.+)\d{4}(.+)/, '$1');
-  const outPath = path.join('.', 'output', `${fileName}-pre${ext}`);
+  const outPath = path.join(dir, `${fileName}-pre${ext}`);
   const { data } = readSheet(0, inputDataPath);
 
   // 비기사/사설 의심 데이터 마킹, 신문사별 키워드 리스트 적용 필요
