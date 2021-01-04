@@ -66,10 +66,6 @@ function main(inputDataPath) {
       .reduce((acc, curr) => [...acc, ...curr], []);
     dupMap.set(id, [...new Set([...dubIds, ...backDubIds])]);
   }
-  fs.writeFileSync(
-    'output/out.json',
-    JSON.stringify(Array.from(dupMap), null, 2)
-  );
 
   // 중복기사 의심 데이터 마킹
   for (let entry of dupMap) {
