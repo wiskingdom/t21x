@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 // custom modules
 const { readSheet, writeSheet } = require('../lib/sheetIO');
-const { naList } = require('../source/naList');
+const { naList } = require('../resource/naList');
 
 /* export modules */
 module.exports = { main };
