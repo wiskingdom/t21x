@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 // custom modules
 const { readSheet, writeSheet } = require('../lib/sheetIO');
+const { naList } = require('../source/naList');
 
 /* export modules */
 module.exports = { main };
@@ -16,10 +17,6 @@ function main(inputDataPath) {
   const { data } = readSheet(0, inputDataPath);
 
   // 비기사/사설 의심 데이터 마킹, 신문사별 키워드 리스트 적용 필요
-  const naList = fs
-    .readFileSync('./resource/naList.txt', 'utf-8')
-    .trim()
-    .split(/[\n\r]+/);
 
   for (let i = 0; i < data.length; i++) {
     const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
