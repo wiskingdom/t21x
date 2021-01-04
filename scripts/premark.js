@@ -5,88 +5,92 @@ const fs = require('fs');
 // custom modules
 const { readSheet, writeSheet } = require('../lib/sheetIO');
 
-const inputDataPath = process.argv[2];
+/* export modules */
+module.exports = { main };
 
-const { name: fileName, ext } = path.parse(inputDataPath);
-const newsType = fileName.replace(/(.+)\d{4}(.+)/, '$1');
-const outPath = path.join('.', 'output', `${fileName}-pre${ext}`);
-const { data } = readSheet(0, inputDataPath);
+/* main */
+function main(inputDataPath) {
+  const { name: fileName, ext } = path.parse(inputDataPath);
+  const newsType = fileName.replace(/(.+)\d{4}(.+)/, '$1');
+  const outPath = path.join('.', 'output', `${fileName}-pre${ext}`);
+  const { data } = readSheet(0, inputDataPath);
 
-// 비기사/사설 의심 데이터 마킹, 신문사별 키워드 리스트 적용 필요
-const naList = fs
-  .readFileSync('./data/naList.txt', 'utf-8')
-  .trim()
-  .split(/[\n\r]+/);
+  // 비기사/사설 의심 데이터 마킹, 신문사별 키워드 리스트 적용 필요
+  const naList = fs
+    .readFileSync('./data/naList.txt', 'utf-8')
+    .trim()
+    .split(/[\n\r]+/);
 
-for (let i = 0; i < data.length; i++) {
-  const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
-  const SearchLink = getSearchLink(newsType, NewsText);
-  const WordCount =
-    typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
-  const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
-    ? 'n'
-    : 'p';
-  data[i] = {
-    ...others,
-    PreMark,
-    HeadLine,
-    SubHeadLine,
-    ByLine,
-    Dup: null,
-    Mark: null,
-    NewsText,
-    SearchLink,
-    WordCount,
-  }; // 최종 열 순서 고려
+  for (let i = 0; i < data.length; i++) {
+    const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
+    const SearchLink = getSearchLink(newsType, NewsText);
+    const WordCount =
+      typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
+    const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
+      ? 'n'
+      : 'p';
+    data[i] = {
+      ...others,
+      PreMark,
+      HeadLine,
+      SubHeadLine,
+      ByLine,
+      Dup: null,
+      Mark: null,
+      NewsText,
+      SearchLink,
+      WordCount,
+    }; // 최종 열 순서 고려
 
-  if (['사설', '기자'].some((item) => `${HeadLine}`.includes(item))) {
-    data[i]['PreMark'] = 's';
+    if (['사설', '기자'].some((item) => `${HeadLine}`.includes(item))) {
+      data[i]['PreMark'] = 's';
+    }
   }
-}
 
-// 중복기사 의심 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
-const dupMap = new Map(); // acc
-const searchSize = 300;
-for (let i = 0; i < data.length; i++) {
-  const { ID, NewsText } = data[i];
-  const minIndex = i - searchSize > 0 ? i - searchSize : 0;
-  const searchTargets = data.slice(minIndex, i);
-  const copys = searchTargets
-    .filter((row) => checkCopy(0.3, 3, row['NewsText'], NewsText))
-    .map((row) => row['ID']);
-  copys.length > 0 && dupMap.set(ID, copys);
-  process.stdout.write(`Checking redundancy with ID:${ID}\r`);
-}
-console.log('Checking redundancy');
-// 중복 의심 아이디 후방 파급 적용
-for (let entry of dupMap) {
-  const [id, dubIds] = entry;
-  const backDubIds = dubIds
-    .map((dubId) => (dupMap.has(dubId) ? dupMap.get(dubId) : []))
-    .reduce((acc, curr) => [...acc, ...curr], []);
-  dupMap.set(id, [...new Set([...dubIds, ...backDubIds])]);
-}
-fs.writeFileSync(
-  'output/out.json',
-  JSON.stringify(Array.from(dupMap), null, 2)
-);
-
-// 중복기사 의심 데이터 마킹
-for (let entry of dupMap) {
-  const [id, dubIds] = entry;
-  const markIndex = data.findIndex((row) => row['ID'] === id);
-  const subMarkIndices = dubIds.map((id) =>
-    data.findIndex((row) => row['ID'] === id)
+  // 중복기사 의심 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
+  const dupMap = new Map(); // acc
+  const searchSize = 300;
+  for (let i = 0; i < data.length; i++) {
+    const { ID, NewsText } = data[i];
+    const minIndex = i - searchSize > 0 ? i - searchSize : 0;
+    const searchTargets = data.slice(minIndex, i);
+    const copys = searchTargets
+      .filter((row) => checkSimilar(0.3, 3, row['NewsText'], NewsText))
+      .map((row) => row['ID']);
+    copys.length > 0 && dupMap.set(ID, copys);
+    process.stdout.write(`Checking redundancy with ID:${ID}\r`);
+  }
+  console.log('Checking redundancy');
+  // 중복 의심 아이디 후방 파급 적용
+  for (let entry of dupMap) {
+    const [id, dubIds] = entry;
+    const backDubIds = dubIds
+      .map((dubId) => (dupMap.has(dubId) ? dupMap.get(dubId) : []))
+      .reduce((acc, curr) => [...acc, ...curr], []);
+    dupMap.set(id, [...new Set([...dubIds, ...backDubIds])]);
+  }
+  fs.writeFileSync(
+    'output/out.json',
+    JSON.stringify(Array.from(dupMap), null, 2)
   );
-  data[markIndex] = { ...data[markIndex], PreMark: 'd', Dup: id };
-  subMarkIndices.forEach(
-    (subid) => (data[subid] = { ...data[subid], PreMark: 'd', Dup: id })
-  );
+
+  // 중복기사 의심 데이터 마킹
+  for (let entry of dupMap) {
+    const [id, dubIds] = entry;
+    const markIndex = data.findIndex((row) => row['ID'] === id);
+    const subMarkIndices = dubIds.map((id) =>
+      data.findIndex((row) => row['ID'] === id)
+    );
+    data[markIndex] = { ...data[markIndex], PreMark: 'd', Dup: id };
+    subMarkIndices.forEach(
+      (subid) => (data[subid] = { ...data[subid], PreMark: 'd', Dup: id })
+    );
+  }
+
+  writeSheet(outPath, 'data', { data });
 }
 
-writeSheet(outPath, 'data', { data });
-
-// functions
+/* functions */
 function getSearchLink(newsType, text) {
   const words = `${text}`.split(/[^가-힣\w]+/);
   const getIds = (getSize, totalSize) => {
@@ -103,10 +107,9 @@ function getSearchLink(newsType, text) {
   const preStr = preStrMap[newsType];
 
   return typeof text === 'string' ? `${preStr}${joinedWords}` : '';
-  //return `${preStr}${encodeURI(joinedWords)}`;
 }
 
-function checkCopy(bar, n, strA, strB) {
+function checkSimilar(bar, n, strA, strB) {
   const aSet = new Set(nGrams(n, strA));
   const bSet = new Set(nGrams(n, strB));
   const interSet = intersection(aSet, bSet);

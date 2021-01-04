@@ -6,40 +6,44 @@ const fs = require('fs');
 // custom modules
 const { readSheet, writeT21xSheet } = require('../lib/sheetIO');
 
-const inputDataPath = process.argv[2];
-const inputAssignPath = process.argv[3];
-const { name: fileName, base: fileBaseName, ext } = path.parse(inputDataPath);
-const timestamp = new Date().getTime().toString();
-const outDirPath = path.join('.', 'output', `${fileName}-${timestamp}`);
+/* export modules */
+module.exports = { main };
 
-const { data: assignTable } = readSheet(0, inputAssignPath);
+/* main */
+function main(inputDataPath, inputAssignPath) {
+  const { name: fileName, base: fileBaseName, ext } = path.parse(inputDataPath);
+  const timestamp = new Date().getTime().toString();
+  const outDirPath = path.join('.', 'output', `${fileName}-${timestamp}`);
 
-if (validateAssign(fileBaseName, assignTable)) {
-  const { data } = readSheet(0, inputDataPath);
-  const dataByMonth = groupByMonth(fileBaseName, data);
-  const meta = getMeta(fileBaseName, timestamp, assignTable);
-  fs.mkdirSync(outDirPath);
+  const { data: assignTable } = readSheet(0, inputAssignPath);
 
-  let buffer = [];
-  const doAction = ([indexMonth, data]) => {
-    const metaByMonth = meta[indexMonth];
-    const { Worker } = metaByMonth[0];
-    const DataSize = data.length;
-    const xlsxPath = path.join(
-      outDirPath,
-      `${fileName}-${indexMonth}-${Worker}${ext}`
-    );
-    buffer.push([indexMonth, Worker, DataSize]);
-    writeT21xSheet(xlsxPath, {
-      data,
-      meta: [{ ...metaByMonth[0], DataSize }],
-    });
-  };
+  if (validateAssign(fileBaseName, assignTable)) {
+    const { data } = readSheet(0, inputDataPath);
+    const dataByMonth = groupByMonth(fileBaseName, data);
+    const meta = getMeta(fileBaseName, timestamp, assignTable);
+    fs.mkdirSync(outDirPath);
 
-  Object.entries(dataByMonth).forEach(doAction);
-  console.log(buffer.sort());
-} else {
-  console.log('Assign table is not validated!');
+    let buffer = [];
+    const doAction = ([indexMonth, data]) => {
+      const metaByMonth = meta[indexMonth];
+      const { Worker } = metaByMonth[0];
+      const DataSize = data.length;
+      const xlsxPath = path.join(
+        outDirPath,
+        `${fileName}-${indexMonth}-${Worker}${ext}`
+      );
+      buffer.push([indexMonth, Worker, DataSize]);
+      writeT21xSheet(xlsxPath, {
+        data,
+        meta: [{ ...metaByMonth[0], DataSize }],
+      });
+    };
+
+    Object.entries(dataByMonth).forEach(doAction);
+    console.log(buffer.sort());
+  } else {
+    console.log('Assign table is not validated!');
+  }
 }
 
 //fs.writeFileSync('output/log.json', JSON.stringify(meta, null, 2));
