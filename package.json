@@ -8,7 +8,7 @@
     "irr": "node ./scripts/getIrr.js",
     "sheetio": "node ./scripts/testSheetIO.js",
     "split": "node ./scripts/split.js",
-    "copy": "node ./scripts/checkCopy.js"
+    "premark": "node ./scripts/premark.js"
   },
   "repository": {
     "type": "git",
