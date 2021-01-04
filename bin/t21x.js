@@ -10,7 +10,7 @@ const split = require('../scripts/split');
 const programType = process.argv[2];
 const inputDataPath = process.argv[3];
 const inputAssignPath = programType === 'split' ? process.argv[3] : null;
-
+console.log(process.argv);
 const programMap = {
   premark: premark.main,
   split: split.main,

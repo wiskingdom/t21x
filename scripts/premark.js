@@ -17,7 +17,7 @@ function main(inputDataPath) {
 
   // 비기사/사설 의심 데이터 마킹, 신문사별 키워드 리스트 적용 필요
   const naList = fs
-    .readFileSync('./data/naList.txt', 'utf-8')
+    .readFileSync('./resource/naList.txt', 'utf-8')
     .trim()
     .split(/[\n\r]+/);
 
