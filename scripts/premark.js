@@ -11,7 +11,7 @@ module.exports = { main };
 /* main */
 function main(inputDataPath) {
   const { dir, name: fileName, ext } = path.parse(inputDataPath);
-  const newsType = fileName.replace(/(.+)\d{4}(.+)/, '$1');
+  const newsType = fileName.replace(/(.+)\d{4}(.*)/, '$1');
   const outPath = path.join(dir, `${fileName}-pre${ext}`);
   const { data } = readSheet(0, inputDataPath);
 
@@ -20,6 +20,7 @@ function main(inputDataPath) {
   for (let i = 0; i < data.length; i++) {
     const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
     const SearchLink = getSearchLink(newsType, NewsText);
+    console.log(newsType);
     const WordCount =
       typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
     const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
