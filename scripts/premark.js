@@ -20,7 +20,6 @@ function main(inputDataPath) {
   for (let i = 0; i < data.length; i++) {
     const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
     const SearchLink = getSearchLink(newsType, NewsText);
-    console.log(newsType);
     const WordCount =
       typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
     const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
