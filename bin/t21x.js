@@ -3,8 +3,12 @@
 'use strict';
 
 /* import modules */
+// third party modules
+
+// custom modules - main actions
 const premark = require('../scripts/premark');
 const split = require('../scripts/split');
+//const { version, description } = require('../package.json');
 
 /* main */
 const programType = process.argv[2];

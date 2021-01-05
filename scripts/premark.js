@@ -15,7 +15,7 @@ function main(inputDataPath) {
   const outPath = path.join(dir, `${fileName}-pre${ext}`);
   const { data } = readSheet(0, inputDataPath);
 
-  // 비기사/사설 의심 데이터 마킹, 신문사별 키워드 리스트 적용 필요
+  // 비기사/사설 추정 데이터 마킹, 신문사별 키워드 리스트 적용 필요
 
   for (let i = 0; i < data.length; i++) {
     const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
@@ -43,7 +43,7 @@ function main(inputDataPath) {
     }
   }
 
-  // 중복기사 의심 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
+  // 중복기사 추정 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
   const dupMap = new Map(); // acc
   const searchSize = 300;
   for (let i = 0; i < data.length; i++) {
@@ -57,7 +57,7 @@ function main(inputDataPath) {
     process.stdout.write(`Checking redundancy with ID:${ID}\r`);
   }
   console.log('Checking redundancy');
-  // 중복 의심 아이디 후방 파급 적용
+  // 중복 추정 아이디 후방 파급 적용
   for (let entry of dupMap) {
     const [id, dubIds] = entry;
     const backDubIds = dubIds
@@ -66,7 +66,7 @@ function main(inputDataPath) {
     dupMap.set(id, [...new Set([...dubIds, ...backDubIds])]);
   }
 
-  // 중복기사 의심 데이터 마킹
+  // 중복기사 추정 데이터 마킹
   for (let entry of dupMap) {
     const [id, dubIds] = entry;
     const markIndex = data.findIndex((row) => row['ID'] === id);

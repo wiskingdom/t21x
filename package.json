@@ -1,14 +1,13 @@
 {
   "name": "t21x",
-  "version": "0.0.8",
-  "description": "Tools for t21 xlsx files.",
-  "main": "main.js",
+  "version": "0.0.9",
+  "description": "CLI tools for t21 xlsx files.",
+  "main": "./script/t21xio.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "irr": "node ./scripts/getIrr.js",
     "sheetio": "node ./scripts/testSheetIO.js",
-    "split": "node ./scripts/split.js",
-    "premark": "node ./scripts/premark.js"
+    "t21x": "node ./bin/t21x.js"
   },
   "bin": {
     "t21x": "./bin/t21x.js"
