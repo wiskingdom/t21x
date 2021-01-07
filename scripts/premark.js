@@ -1,48 +1,13 @@
-/* import modules */
-// built-in modules
-const path = require('path');
-// custom modules
-const { readSheet, writeSheet } = require('../lib/sheetIO');
 const { naList } = require('../resource/naList');
 
 /* export modules */
-module.exports = { main };
+module.exports = { classMark, dupMark };
 
 /* main */
-function main(inputDataPath) {
-  const { dir, name: fileName, ext } = path.parse(inputDataPath);
-  const newsType = fileName.replace(/(.+)\d{4}(.*)/, '$1');
-  const outPath = path.join(dir, `${fileName}-pre${ext}`);
-  const { data } = readSheet(0, inputDataPath);
 
-  // 비기사/사설 추정 데이터 마킹, 신문사별 키워드 리스트 적용 필요
+/* actions */
 
-  for (let i = 0; i < data.length; i++) {
-    const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
-    const SearchLink = getSearchLink(newsType, NewsText);
-    const WordCount =
-      typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
-    const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
-      ? 'n'
-      : 'p';
-    data[i] = {
-      ...others,
-      PreMark,
-      HeadLine,
-      SubHeadLine,
-      ByLine,
-      Dup: null,
-      Mark: null,
-      NewsText,
-      SearchLink,
-      WordCount,
-    }; // 최종 열 순서 고려
-
-    if (['사설', '기자'].some((item) => `${HeadLine}`.includes(item))) {
-      data[i]['PreMark'] = 's';
-    }
-  }
-
+function dupMark(data) {
   // 중복기사 추정 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
   const dupMap = new Map(); // acc
   const searchSize = 300;
@@ -78,20 +43,51 @@ function main(inputDataPath) {
       (subid) => (data[subid] = { ...data[subid], PreMark: 'd', Dup: id })
     );
   }
+  return data;
+}
 
-  writeSheet(outPath, 'data', { data });
+// 비기사/사설 추정 데이터 마킹, 신문사별 키워드 리스트 적용 필요
+function classMark(newsType) {
+  return function (data) {
+    for (let i = 0; i < data.length; i++) {
+      const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
+      const SearchLink = getSearchLink(newsType, NewsText);
+      const WordCount =
+        typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
+      const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
+        ? 'n'
+        : 'y';
+      data[i] = {
+        ...others,
+        PreMark,
+        Dup: null,
+        Mark: null,
+        HeadLine,
+        SubHeadLine,
+        ByLine,
+        NewsText,
+        SearchLink,
+        WordCount,
+      }; // 최종 열 순서 고려
+
+      if (['사설', '기자'].some((item) => `${HeadLine}`.includes(item))) {
+        data[i]['PreMark'] = 'e';
+      }
+    }
+    return data;
+  };
 }
 
 /* functions */
 function getSearchLink(newsType, text) {
-  const words = `${text}`.split(/[^가-힣\w]+/);
+  const words = `${text}`.replace(/<CRLF>/g, ' ').split(/[^가-힣\w]+/);
   const getIds = (getSize, totalSize) => {
     const startId = Math.floor((totalSize - getSize) / 2);
     const endId = startId + getSize;
     return totalSize > getSize ? [startId, endId] : [0];
   };
   const targetWords = words.slice(...getIds(10, words.length));
-  const joinedWords = targetWords.join('+');
+  const joinedWords = targetWords.join(' ');
   const preStrMap = {
     cho: 'https://www.chosun.com/nsearch/?query=',
     han: 'http://search.hani.co.kr/Search?command=query&keyword=',
