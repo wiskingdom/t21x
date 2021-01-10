@@ -131,6 +131,7 @@ function classMark(newsType) {
         PreWhy,
         WordCount,
         SearchLink,
+        Aux: null,
       }; // 최종 열 순서 고려
     }
     return data;
