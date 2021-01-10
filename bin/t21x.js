@@ -39,8 +39,6 @@ function preMarkAll(inputDataPath) {
   console.log('pass');
 
   writeSheet(outPath, 'data', preMarkedData);
-
-  //fs.writeFileSync('output/out.json', JSON.stringify(preMarkedData, null, 2));
 }
 
 function readSheet(sheetNumber, xlsxPath) {

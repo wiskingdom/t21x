@@ -1,4 +1,4 @@
-const { naList } = require('../resource/naList');
+const { keywordMap } = require('../resource/keywordMap');
 
 /* export modules */
 module.exports = { classMark, dupMark };
@@ -38,14 +38,78 @@ function dupMark(data) {
     const subMarkIndices = dubIds.map((id) =>
       data.findIndex((row) => row['ID'] === id)
     );
-    data[markIndex] = { ...data[markIndex], PreMark: 'd', Dup: id };
-    subMarkIndices.forEach(
-      (subid) => (data[subid] = { ...data[subid], PreMark: 'd', Dup: id })
+    const mergeIndices = [markIndex, ...subMarkIndices];
+    const hasPageIndices = mergeIndices.filter(
+      (subid) => data[subid]['PrintingPage']
     );
+    const notHasPageIndices = mergeIndices.filter(
+      (subid) => !data[subid]['PrintingPage']
+    );
+
+    for (let subid of mergeIndices) {
+      data[subid] = { ...data[subid], Dup: id };
+    }
+
+    if (hasPageIndices.length === 1) {
+      for (let subid of notHasPageIndices) {
+        data[subid] = {
+          ...data[subid],
+          PreMark: 'n',
+          PreWhy: '중복: 페이지없음',
+        };
+      }
+      for (let subid of hasPageIndices) {
+        data[subid] = {
+          ...data[subid],
+          PreWhy: '중복: 페이지단독',
+        };
+      }
+    }
   }
   return data;
 }
 
+function classify(newsType, keywordMap, record) {
+  const findMatch = (list, str) =>
+    list.findIndex((item) => str.match(new RegExp(item)));
+  const colMap = {
+    HeadLine: '제목',
+    PageType: '면종',
+    NewsText: '본문',
+  };
+  const { n, e } = keywordMap[newsType];
+  let pre = {
+    PreMark: 'y',
+    PreWhy: '해당없음',
+  };
+
+  for (let { target, patterns } of n) {
+    const matchId = findMatch(patterns, `${record[target]}`);
+    if (matchId !== -1) {
+      pre = {
+        PreMark: 'n',
+        PreWhy: `${colMap[target]}: ${patterns[matchId]}`,
+      };
+    }
+  }
+  for (let { target, patterns } of e) {
+    const matchId = findMatch(patterns, `${record[target]}`);
+    if (matchId !== -1) {
+      pre = {
+        PreMark: 'e',
+        PreWhy: `${colMap[target]}: ${patterns[matchId]}`,
+      };
+    }
+  }
+  if (!record['NewsText']) {
+    pre = {
+      PreMark: 'n',
+      PreWhy: `본문: 공백`,
+    };
+  }
+
+  return pre;
+}
 // 비기사/사설 추정 데이터 마킹, 신문사별 키워드 리스트 적용 필요
 function classMark(newsType) {
   return function (data) {
@@ -54,9 +118,7 @@ function classMark(newsType) {
       const SearchLink = getSearchLink(newsType, NewsText);
       const WordCount =
         typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
-      const PreMark = naList.some((item) => `${HeadLine}`.includes(item))
-        ? 'n'
-        : 'y';
+      const { PreMark, PreWhy } = classify(newsType, keywordMap, data[i]);
       data[i] = {
         ...others,
         PreMark,
@@ -66,13 +128,10 @@ function classMark(newsType) {
         SubHeadLine,
         ByLine,
         NewsText,
-        SearchLink,
+        PreWhy,
         WordCount,
+        SearchLink,
       }; // 최종 열 순서 고려
-
-      if (['사설', '기자'].some((item) => `${HeadLine}`.includes(item))) {
-        data[i]['PreMark'] = 'e';
-      }
     }
     return data;
   };
