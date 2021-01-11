@@ -38,8 +38,8 @@ const keywordMap = {
     ],
     e: [
       {
-        target: 'PageType',
-        patterns: ['^YR'],
+        target: 'HeadLine',
+        patterns: ['社說', '사설'],
       },
     ],
   },
