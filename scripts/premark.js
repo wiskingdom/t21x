@@ -47,21 +47,23 @@ function dupMark(data) {
     );
 
     for (let subid of mergeIndices) {
-      data[subid] = { ...data[subid], Dup: id };
+      data[subid] = { ...data[subid], Dup: 'dup-2', DupID: id };
     }
 
     if (hasPageIndices.length === 1) {
       for (let subid of notHasPageIndices) {
         data[subid] = {
           ...data[subid],
+          Dup: 'dup-1',
           PreMark: 'n',
-          PreWhy: '중복: 페이지없음',
+          PreWhy: '중복1: 페이지없음',
         };
       }
       for (let subid of hasPageIndices) {
         data[subid] = {
           ...data[subid],
-          PreWhy: '중복: 페이지단독',
+          Dup: 'dup-1',
+          PreWhy: '중복1: 페이지단독',
         };
       }
     }
@@ -121,8 +123,9 @@ function classMark(newsType) {
       const { PreMark, PreWhy } = classify(newsType, keywordMap, data[i]);
       data[i] = {
         ...others,
+        Dup: 'no-dup',
         PreMark,
-        Dup: null,
+        DupID: null,
         Mark: null,
         HeadLine,
         SubHeadLine,
