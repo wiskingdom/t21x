@@ -11,9 +11,9 @@ module.exports = { main };
 
 /* main */
 function main(inputDataPath, inputAssignPath) {
-  const { dir, name: fileName, base: fileBaseName, ext } = path.parse(
-    inputDataPath
-  );
+  const { dir, name, ext } = path.parse(inputDataPath);
+  const fileName = name.match(/.+\d{4}/)[0];
+  const fileBaseName = fileName + ext;
   const timestamp = new Date().getTime().toString();
   const outDirPath = path.join(dir, `${fileName}-${timestamp}`);
 
@@ -21,27 +21,27 @@ function main(inputDataPath, inputAssignPath) {
 
   if (validateAssign(fileBaseName, assignTable)) {
     const { data } = readSheet(0, inputDataPath);
-    const dataByMonth = groupByMonth(fileBaseName, data);
+    const dataByQuarter = groupByQuarter(fileBaseName, data);
     const meta = getMeta(fileBaseName, timestamp, assignTable);
     fs.mkdirSync(outDirPath);
 
     let buffer = [];
-    const doAction = ([indexMonth, data]) => {
-      const metaByMonth = meta[indexMonth];
-      const { Worker } = metaByMonth[0];
+    const doAction = ([indexQuarter, data]) => {
+      const metaByQuarter = meta[indexQuarter];
+      const { Worker } = metaByQuarter[0];
       const DataSize = data.length;
       const xlsxPath = path.join(
         outDirPath,
-        `${fileName}-${indexMonth}-${Worker}${ext}`
+        `${fileName}-${indexQuarter}-${Worker}${ext}`
       );
-      buffer.push([indexMonth, Worker, DataSize]);
+      buffer.push([indexQuarter, Worker, DataSize]);
       writeT21xSheet(xlsxPath, {
         data,
-        meta: [{ ...metaByMonth[0], DataSize }],
+        meta: [{ ...metaByQuarter[0], DataSize }],
       });
     };
 
-    Object.entries(dataByMonth).forEach(doAction);
+    Object.entries(dataByQuarter).forEach(doAction);
     console.log(buffer.sort());
   } else {
     console.log('Assign table is not validated!');
@@ -56,26 +56,40 @@ function getMeta(fileBaseName, timestamp, assignTable) {
     (row) => row['FileName'] === fileBaseName
   );
   const reducer = (acc, curr) => {
-    const indexMonth = `${curr['Month']}`.padStart(2, 0);
-    acc[indexMonth] = acc[indexMonth] || [];
-    acc[indexMonth].push({ ...curr, AssignedAt: timestamp });
+    const indexQuarter = `${curr['Quarter']}`;
+    acc[indexQuarter] = acc[indexQuarter] || [];
+    acc[indexQuarter].push({ ...curr, AssignedAt: timestamp });
     return acc;
   };
   return targetList.reduce(reducer, {});
 }
 
-function getIndexMonth(fileYear, singleRow) {
+function getIndexQuarter(fileYear, singleRow) {
   const { DateLine } = singleRow;
   const [year, month] = `${DateLine}`.match(/^(\d{4})(\d{2})(\d{2})$/).slice(1);
-  return year === fileYear ? month : year < fileYear ? '01' : '12';
+  const qMap = {
+    '01': 'q1',
+    '02': 'q1',
+    '03': 'q1',
+    '04': 'q2',
+    '05': 'q2',
+    '06': 'q2',
+    '07': 'q3',
+    '08': 'q3',
+    '09': 'q3',
+    10: 'q4',
+    11: 'q4',
+    12: 'q4',
+  };
+  return year === fileYear ? qMap[month] : year < fileYear ? 'q1' : 'q4';
 }
 
-function groupByMonth(fileBaseName, data) {
+function groupByQuarter(fileBaseName, data) {
   const fileYear = fileBaseName.match(/\d{4}/)[0];
   const reducer = (acc, curr) => {
-    const indexMonth = getIndexMonth(fileYear, curr);
-    acc[indexMonth] = acc[indexMonth] || [];
-    acc[indexMonth].push(curr);
+    const indexQuarter = getIndexQuarter(fileYear, curr);
+    acc[indexQuarter] = acc[indexQuarter] || [];
+    acc[indexQuarter].push(curr);
     return acc;
   };
   return data.reduce(reducer, {});
@@ -96,16 +110,12 @@ function validateAssign(fileBaseName, assignTable) {
     (row) => row['FileName'] === fileBaseName
   );
   const cmpAsc = (a, b) => (a > b ? 1 : -1);
-  const months = targetList.map((row) => row['Month']).sort(cmpAsc);
-  const has12Items = targetList.length === 12;
-  const hasAllMonth = numsEqual(months, countUp(12));
-  return has12Items && hasAllMonth;
+  const quarters = targetList.map((row) => row['Quarter']).sort(cmpAsc);
+  const has4Items = targetList.length === 4;
+  const hasAllQuarter = qsEqual(quarters, ['q1', 'q2', 'q3', 'q4']);
+  return has4Items && hasAllQuarter;
 }
 
-function countUp(num) {
-  return num === 0 ? [] : [...countUp(num - 1), num];
-}
-
-function numsEqual(nums1, nums2) {
-  return JSON.stringify(nums1) === JSON.stringify(nums2);
+function qsEqual(qs1, qs2) {
+  return JSON.stringify(qs1) === JSON.stringify(qs2);
 }
