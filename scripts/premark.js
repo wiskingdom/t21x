@@ -154,6 +154,7 @@ function getSearchLink(newsType, text) {
   const preStrMap = {
     cho: 'https://www.chosun.com/nsearch/?query=',
     han: 'http://search.hani.co.kr/Search?command=query&keyword=',
+    dong: 'https://www.donga.com/news/search?query=',
   };
   const preStr = preStrMap[newsType];
 
