@@ -1,6 +1,6 @@
 {
   "name": "t21x",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "CLI tools for t21 xlsx files.",
   "main": "./script/t21xio.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "irr": "node ./scripts/getIrr.js",
     "sheetio": "node ./scripts/testSheetIO.js",
     "t21x": "node ./bin/t21x.js",
-    "merge": "node ./scripts/merge.js"
+    "merge": "node ./scripts/merge.js",
+    "shake": "node ./scripts/shake.js"
   },
   "bin": {
     "t21x": "./bin/t21x.js"
