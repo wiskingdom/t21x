@@ -143,7 +143,7 @@ function classMark(newsType) {
 
 /* functions */
 function getSearchLink(newsType, text) {
-  const words = `${text}`.replace(/<CRLF>/g, ' ').split(/[^가-힣\w]+/);
+  const words = `${text}`.replace(/<CRLF>/g, ' ').split(/[^가-힣]+/);
   const getIds = (getSize, totalSize) => {
     const startId = Math.floor((totalSize - getSize) / 2);
     const endId = startId + getSize;
@@ -155,6 +155,7 @@ function getSearchLink(newsType, text) {
     cho: 'https://www.chosun.com/nsearch/?query=',
     han: 'http://search.hani.co.kr/Search?command=query&keyword=',
     dong: 'https://www.donga.com/news/search?query=',
+    joong: 'https://news.joins.com/search/?keyword=',
   };
   const preStr = preStrMap[newsType];
 
