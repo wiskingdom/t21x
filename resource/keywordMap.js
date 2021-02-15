@@ -171,21 +171,19 @@ const keywordMap = {
         target: 'HeadLine',
         patterns: ['社說', '사설'],
       },
+    ],
+  },
+  han: {
+    n: [
       {
-        target: 'NewsText',
-        patterns: [
-          '논설 ?위원',
-          '논설 ?실장',
-          '부문 ?기자',
-          '부문 ?차장',
-          '부문 ?선임 ?기자',
-          ' 대기자',
-          ' 총국장',
-          ' 경제 ?부장',
-          ' 경제부 ?부장',
-          ' 정치 ?부장',
-          ' 정치부 ?부장',
-        ],
+        target: 'HeadLine',
+        patterns: ['Wide Shot'],
+      },
+    ],
+    e: [
+      {
+        target: 'HeadLine',
+        patterns: ['社說', '사설'],
       },
     ],
   },
