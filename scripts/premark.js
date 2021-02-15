@@ -119,7 +119,7 @@ function classMark(newsType) {
       const { HeadLine, SubHeadLine, ByLine, NewsText, ...others } = data[i];
       const SearchLink = getSearchLink(newsType, NewsText);
       const WordCount =
-        typeof NewsText === 'string' ? NewsText.split(/\s+/).length : 0;
+        typeof NewsText === 'string' ? NewsText.split(/[^가-힣]+/).length : 0;
       const { PreMark, PreWhy } = classify(newsType, keywordMap, data[i]);
       data[i] = {
         ...others,
@@ -182,7 +182,8 @@ function intersection(setA, setB) {
 
 function nGrams(n, str) {
   const maxIndex = n - 1;
-  const uniGrams = `${str}`.trim().split(/[\s.?!,]+/);
+  //const uniGrams = `${str}`.trim().split(/[\s.?!,]+/);
+  const uniGrams = `${str}`.trim().split(/[^가-힣]+/);
   const indexPairs = getIndexPairs(maxIndex);
   const indices = indexPairs.map((pair) => pair[0]);
   const jIndices = countUp(uniGrams.length - n);
