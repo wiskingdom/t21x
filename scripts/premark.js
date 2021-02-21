@@ -7,70 +7,83 @@ module.exports = { classMark, dupMark };
 
 /* actions */
 
-function dupMark(data) {
-  // 중복기사 추정 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
-  const dupMap = new Map(); // acc
-  const searchSize = 300;
-  for (let i = 0; i < data.length; i++) {
-    const { ID, NewsText } = data[i];
-    const minIndex = i - searchSize > 0 ? i - searchSize : 0;
-    const searchTargets = data.slice(minIndex, i);
-    const copys = searchTargets
-      .filter((row) => checkSimilar(0.3, 3, row['NewsText'], NewsText))
-      .map((row) => row['ID']);
-    copys.length > 0 && dupMap.set(ID, copys);
-    process.stdout.write(`Checking redundancy with ID:${ID}\r`);
-  }
-  console.log('Checking redundancy');
-  // 중복 추정 아이디 후방 파급 적용
-  for (let entry of dupMap) {
-    const [id, dubIds] = entry;
-    const backDubIds = dubIds
-      .map((dubId) => (dupMap.has(dubId) ? dupMap.get(dubId) : []))
-      .reduce((acc, curr) => [...acc, ...curr], []);
-    dupMap.set(id, [...new Set([...dubIds, ...backDubIds])]);
-  }
-
-  // 중복기사 추정 데이터 마킹
-  for (let entry of dupMap) {
-    const [id, dubIds] = entry;
-    const markIndex = data.findIndex((row) => row['ID'] === id);
-    const subMarkIndices = dubIds.map((id) =>
-      data.findIndex((row) => row['ID'] === id)
-    );
-    const mergeIndices = [markIndex, ...subMarkIndices];
-    const hasPageIndices = mergeIndices.filter(
-      (subid) => data[subid]['PrintingPage']
-    );
-    const notHasPageIndices = mergeIndices.filter(
-      (subid) => !data[subid]['PrintingPage']
-    );
-
-    for (let subid of mergeIndices) {
-      data[subid] = { ...data[subid], Dup: 'dup-2', DupID: id };
+function dupMark(newsType) {
+  return function (data) {
+    // 중복기사 추정 데이터 추출 - 최적화 위해 reduce 대신 for 구문 사용
+    const dupMap = new Map(); // acc
+    const searchSize = 300;
+    for (let i = 0; i < data.length; i++) {
+      const { ID, NewsText } = data[i];
+      const minIndex = i - searchSize > 0 ? i - searchSize : 0;
+      const searchTargets = data.slice(minIndex, i);
+      const copys = searchTargets
+        .filter((row) => checkSimilar(0.3, 3, row['NewsText'], NewsText))
+        .map((row) => row['ID']);
+      copys.length > 0 && dupMap.set(ID, copys);
+      process.stdout.write(`Checking redundancy with ID:${ID}\r`);
+    }
+    console.log('Checking redundancy');
+    // 중복 추정 아이디 후방 파급 적용
+    for (let entry of dupMap) {
+      const [id, dubIds] = entry;
+      const backDubIds = dubIds
+        .map((dubId) => (dupMap.has(dubId) ? dupMap.get(dubId) : []))
+        .reduce((acc, curr) => [...acc, ...curr], []);
+      dupMap.set(id, [...new Set([...dubIds, ...backDubIds])]);
     }
 
-    if (hasPageIndices.length === 1) {
-      for (let subid of notHasPageIndices) {
-        data[subid] = {
-          ...data[subid],
-          Dup: 'dup-1',
-          PreMark: 'n',
-          PreWhy: '중복1: 페이지없음',
-        };
+    // 중복기사 추정 데이터 마킹
+    for (let entry of dupMap) {
+      const [id, dubIds] = entry;
+      const markIndex = data.findIndex((row) => row['ID'] === id);
+      const subMarkIndices = dubIds.map((id) =>
+        data.findIndex((row) => row['ID'] === id)
+      );
+      const mergeIndices = [markIndex, ...subMarkIndices];
+      const hasPageIndices = mergeIndices.filter(
+        (subid) => data[subid]['PrintingPage']
+      );
+      const notHasPageIndices = mergeIndices.filter(
+        (subid) => !data[subid]['PrintingPage']
+      );
+
+      for (let subid of mergeIndices) {
+        data[subid] = { ...data[subid], Dup: 'dup-2', DupID: id };
       }
-      for (let subid of hasPageIndices) {
-        data[subid] = {
-          ...data[subid],
-          Dup: 'dup-1',
-          PreWhy: '중복1: 페이지단독',
-        };
+
+      if (hasPageIndices.length === 1) {
+        for (let subid of notHasPageIndices) {
+          data[subid] = {
+            ...data[subid],
+            Dup: 'dup-1',
+            PreMark: 'n',
+            PreWhy: '중복1: 페이지없음',
+          };
+        }
+        for (let subid of hasPageIndices) {
+          data[subid] = {
+            ...data[subid],
+            Dup: 'dup-1',
+            PreWhy: '중복1: 페이지단독',
+          };
+        }
       }
     }
-  }
-  return data;
+    if (newsType === 'han') {
+      const dupData = data.filter((item) => item.DupID);
+      const xDupData = dupData.filter((item) => item.PreMark === 'x');
+      const xDupIDs = [...new Set(xDupData.map((item) => item.DupID))];
+      data = data.map((item) => {
+        if (item.DupID && xDupIDs.includes(item.DupID)) {
+          return { ...item, PreMark: 'x' };
+        } else {
+          return item;
+        }
+      });
+    }
+    return data;
+  };
 }
-
 function classify(newsType, keywordMap, record) {
   const findMatch = (list, str) =>
     list.findIndex((item) => str.match(new RegExp(item)));
@@ -79,19 +92,20 @@ function classify(newsType, keywordMap, record) {
     PageType: '면종',
     NewsText: '본문',
   };
-  const { n, e } = keywordMap[newsType];
+  const { n, e, x } = keywordMap[newsType];
   let pre = {
     PreMark: 'y',
     PreWhy: '해당없음',
   };
-
-  for (let { target, patterns } of n) {
-    const matchId = findMatch(patterns, `${record[target]}`);
-    if (matchId !== -1) {
-      pre = {
-        PreMark: 'n',
-        PreWhy: `${colMap[target]}: ${patterns[matchId]}`,
-      };
+  if (n) {
+    for (let { target, patterns } of n) {
+      const matchId = findMatch(patterns, `${record[target]}`);
+      if (matchId !== -1) {
+        pre = {
+          PreMark: 'n',
+          PreWhy: `${colMap[target]}: ${patterns[matchId]}`,
+        };
+      }
     }
   }
   for (let { target, patterns } of e) {
@@ -101,6 +115,17 @@ function classify(newsType, keywordMap, record) {
         PreMark: 'e',
         PreWhy: `${colMap[target]}: ${patterns[matchId]}`,
       };
+    }
+  }
+  if (x) {
+    for (let { target, patterns } of x) {
+      const matchId = findMatch(patterns, `${record[target]}`);
+      if (matchId !== -1) {
+        pre = {
+          PreMark: 'x',
+          PreWhy: `${colMap[target]}: ${patterns[matchId]}`,
+        };
+      }
     }
   }
   if (!record['NewsText']) {

@@ -35,7 +35,7 @@ function preMarkAll(inputDataPath) {
   const newsType = fileName.replace(/(.+)\d{4}(.*)/, '$1');
   const outPath = path.join(dir, `${fileName}-pre${ext}`);
   const { data } = readSheet(0, inputDataPath);
-  const preMarkedData = pipe([classMark(newsType), dupMark])(data);
+  const preMarkedData = pipe([classMark(newsType), dupMark(newsType)])(data);
   console.log('pass');
 
   writeSheet(outPath, 'data', preMarkedData);
