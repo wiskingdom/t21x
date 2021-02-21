@@ -298,7 +298,7 @@ const keywordMap = {
 
       {
         target: 'ByLine',
-        patterns: ['00Scan', '아르바이트', '정대하'],
+        patterns: ['00Scan', '아르바이트'],
       },
     ],
     e: [
