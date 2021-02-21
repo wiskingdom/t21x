@@ -157,6 +157,12 @@ function classify(newsType, keywordMap, record) {
       PreWhy: `본문: 공백`,
     };
   }
+  if (newsType === 'han' && !record['NewsText']) {
+    pre = {
+      PreMark: 'x',
+      PreWhy: `본문: 공백`,
+    };
+  }
 
   return pre;
 }
