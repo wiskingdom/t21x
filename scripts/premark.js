@@ -73,9 +73,16 @@ function dupMark(newsType) {
       const dupData = data.filter((item) => item.DupID);
       const xDupData = dupData.filter((item) => item.PreMark === 'x');
       const xDupIDs = [...new Set(xDupData.map((item) => item.DupID))];
+      const saveDupIDs = xDupIDs.filter((id) => {
+        return (
+          data
+            .filter((item) => item.DupID === id)
+            .filter((item) => item.PreMark !== 'x').length < 2
+        );
+      });
       data = data.map((item) => {
-        if (item.DupID && xDupIDs.includes(item.DupID)) {
-          return { ...item, PreMark: 'x' };
+        if (item.DupID && saveDupIDs.includes(item.DupID)) {
+          return { ...item, DupID: null };
         } else {
           return item;
         }
@@ -91,6 +98,7 @@ function classify(newsType, keywordMap, record) {
     HeadLine: '제목',
     PageType: '면종',
     NewsText: '본문',
+    ByLine: '작성자',
   };
   const { n, e, x } = keywordMap[newsType];
   let pre = {
@@ -117,6 +125,18 @@ function classify(newsType, keywordMap, record) {
       };
     }
   }
+  if (newsType === 'han') {
+    const { NewsText } = record;
+    if (
+      typeof NewsText !== 'string' ||
+      NewsText.split(/[^가-힣]+/).length < 20
+    ) {
+      pre = {
+        PreMark: 'x',
+        PreWhy: `단어수: 20이하`,
+      };
+    }
+  }
   if (x) {
     for (let { target, patterns } of x) {
       const matchId = findMatch(patterns, `${record[target]}`);
@@ -128,6 +148,7 @@ function classify(newsType, keywordMap, record) {
       }
     }
   }
+
   if (!record['NewsText']) {
     pre = {
       PreMark: 'n',
