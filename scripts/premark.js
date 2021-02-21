@@ -1,4 +1,6 @@
 const { keywordMap } = require('../resource/keywordMap');
+const pjson = require('../package.json');
+console.log(pjson.version);
 
 /* export modules */
 module.exports = { classMark, dupMark };
