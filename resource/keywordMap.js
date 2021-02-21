@@ -176,6 +176,27 @@ const keywordMap = {
   han: {
     x: [
       {
+        target: 'NewsText',
+        patterns: [
+          '^♣H6s',
+          '^♣H5s',
+          '^♣H5c',
+          '^♣H5C',
+          '^♣H5S',
+          '^♣H4s',
+          '^\\[♣',
+          '^<YONHAP PHOTO',
+          '^\\<LFCR\\>♣H6s',
+          '^\\<LFCR\\>♣H5s',
+          '^\\<LFCR\\>♣H5c',
+          '^\\<LFCR\\>♣H5C',
+          '^\\<LFCR\\>♣H5S',
+          '^\\<LFCR\\>♣H4s',
+          '^\\<LFCR\\>\\[♣',
+          '^\\<LFCR\\><YONHAP PHOTO',
+        ],
+      },
+      {
         target: 'HeadLine',
         patterns: [
           '궂긴',
@@ -274,27 +295,7 @@ const keywordMap = {
           '새책\\/',
         ],
       },
-      {
-        target: 'NewsText',
-        patterns: [
-          '^♣H6s',
-          '^♣H5s',
-          '^♣H5c',
-          '^♣H5C',
-          '^♣H5S',
-          '^♣H4s',
-          '^\\[♣',
-          '^<YONHAP PHOTO',
-          '^\\<LFCR\\>♣H6s',
-          '^\\<LFCR\\>♣H5s',
-          '^\\<LFCR\\>♣H5c',
-          '^\\<LFCR\\>♣H5C',
-          '^\\<LFCR\\>♣H5S',
-          '^\\<LFCR\\>♣H4s',
-          '^\\<LFCR\\>\\[♣',
-          '^\\<LFCR\\><YONHAP PHOTO',
-        ],
-      },
+
       {
         target: 'ByLine',
         patterns: ['00Scan', '아르바이트', '정대하'],
