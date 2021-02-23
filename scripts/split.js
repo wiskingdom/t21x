@@ -20,8 +20,10 @@ function main(inputDataPath, inputAssignPath) {
   const { data: assignTable } = readSheet(0, inputAssignPath);
 
   if (validateAssign(fileBaseName, assignTable)) {
-    const { data } = readSheet(0, inputDataPath);
-    const dataByQuarter = groupByQuarter(fileBaseName, data);
+    let { data } = readSheet(0, inputDataPath);
+    const targetData = data.filter((record) => record.PreMark !== 'x');
+    const xData = data.filter((record) => record.PreMark === 'x');
+    const dataByQuarter = groupByQuarter(fileBaseName, targetData);
     const meta = getMeta(fileBaseName, timestamp, assignTable);
     fs.mkdirSync(outDirPath);
 
@@ -42,6 +44,19 @@ function main(inputDataPath, inputAssignPath) {
     };
 
     Object.entries(dataByQuarter).forEach(doAction);
+    writeT21xSheet(path.join(outDirPath, `${fileName}-x-none${ext}`), {
+      xData,
+      meta: [
+        {
+          FileName: fileBaseName,
+          Quarter: 'x',
+          Worker: 'none',
+          AssignedAt: timestamp,
+          DataSize: xData.length,
+        },
+      ],
+    });
+    buffer.push(['x', 'none', xData.length]);
     console.log(buffer.sort());
   } else {
     console.log('Assign table is not validated!');
