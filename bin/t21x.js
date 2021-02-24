@@ -11,7 +11,10 @@ const xlsx = require('xlsx');
 const { pipe } = require('../lib/ytools').functools;
 const { classMark, dupMark } = require('../scripts/premark');
 const split = require('../scripts/split');
-//const { version, description } = require('../package.json');
+const dup13 = require('../scripts/dup13');
+
+const pjson = require('../package.json');
+console.log(pjson.version);
 
 /* main */
 const programType = process.argv[2];
@@ -21,6 +24,7 @@ console.log(process.argv);
 const programMap = {
   premark: preMarkAll,
   split: split.main,
+  dup13: dup13.main,
 };
 
 if (programMap[programType]) {

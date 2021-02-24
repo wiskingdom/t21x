@@ -178,7 +178,7 @@ const keywordMap = {
       {
         target: 'HeadLine',
         patterns: [
-          '동정',
+          '브리핑',
           '오늘의',
           '내일의',
           '주말의',

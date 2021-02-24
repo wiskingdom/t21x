@@ -44,18 +44,21 @@ function main(inputDataPath, inputAssignPath) {
     };
 
     Object.entries(dataByQuarter).forEach(doAction);
-    writeT21xSheet(path.join(outDirPath, `${fileName}-x-none${ext}`), {
-      xData,
-      meta: [
-        {
-          FileName: fileBaseName,
-          Quarter: 'x',
-          Worker: 'none',
-          AssignedAt: timestamp,
-          DataSize: xData.length,
-        },
-      ],
-    });
+    if (xData) {
+      writeT21xSheet(path.join(outDirPath, `${fileName}-x-none${ext}`), {
+        data: xData,
+        meta: [
+          {
+            FileName: fileBaseName,
+            Quarter: 'x',
+            Worker: 'none',
+            AssignedAt: timestamp,
+            DataSize: xData.length,
+          },
+        ],
+      });
+    }
+
     buffer.push(['x', 'none', xData.length]);
     console.log(buffer.sort());
   } else {

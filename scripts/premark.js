@@ -1,6 +1,4 @@
 const { keywordMap } = require('../resource/keywordMap');
-const pjson = require('../package.json');
-console.log(pjson.version);
 
 /* export modules */
 module.exports = { classMark, dupMark };
@@ -84,7 +82,7 @@ function dupMark(newsType) {
       });
       data = data.map((item) => {
         if (item.DupID && saveDupIDs.includes(item.DupID)) {
-          return { ...item, DupID: null };
+          return { ...item, Dup: 'no-dup', DupID: null };
         } else {
           return item;
         }
