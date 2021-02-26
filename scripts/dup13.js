@@ -34,7 +34,7 @@ function dupMark(data) {
     const minIndex = i - searchSize > 0 ? i - searchSize : 0;
     const searchTargets = data.slice(minIndex, i);
     const copys = searchTargets
-      .filter((row) => checkSimilar(0.3, 3, row['NewsText'], NewsText))
+      .filter((row) => checkSimilar(0.4, 4, row['NewsText'], NewsText))
       .map((row) => row['ID']);
     copys.length > 0 && dupMap.set(ID, copys);
     process.stdout.write(`Checking redundancy with ID:${ID}\r`);
