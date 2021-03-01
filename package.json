@@ -1,6 +1,6 @@
 {
   "name": "t21x",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "CLI tools for t21 xlsx files.",
   "main": "./script/t21xio.js",
   "scripts": {
